@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui" />
+        <title>ImJSegmentation</title>
+        <link rel="stylesheet" href="style.css">
+    </head>
+
+    <body>    
+
+    	<div id="toolbar"><!-- MENU ITENS -->
+    		<div class="panel border"> 
+    			<div class="light padding">
+		    		<ul class="horizontal">
+                        <li class="dropdown">
+                            <span class="button"><strong>File</strong></span>
+                            <ul class="panel border vertical">
+                                <li>
+                                	<span class="button" onclick="" class="loadButton">
+                                		<strong>Open...</strong>
+                                		<input class="loadFile" id="openFile" type="file" id="files" name="files[]" multiple />
+                                	</span>
+                                <li><span class="button" onclick=""><strong>Save...</strong></span></li>
+                                <li><span class="button" onclick=""><strong>Duplicate</strong></span></li>
+                            </ul>
+                        </li>
+		    			<li class="dropdown">
+		    				<span class="button"><strong>Adjustaments</strong></span>
+		    				<ul class="panel border vertical">
+				    			<li>
+				    				<span class="button" onclick="adjustaments.invert({data: control.getLayer().data, draw: true});">
+				    					<strong>Invert</strong>
+				    				</span>
+				    			</li>
+                                <li>
+                                    <span class="button" onclick="adjustaments.desaturate({data: control.getLayer().data, draw: true});">
+                                        <strong>Desaturate</strong>
+                                    </span>
+                                </li>
+                                <li>
+                                    <span class="button" onclick="adjustaments.adaptativeThreshold({data: control.getLayer().data, draw: true});">
+                                        <strong>Adaptative Threshold...</strong>
+                                    </span>
+                                </li>
+				    		</ul>
+		    			</li>
+                        <li class="dropdown">
+                            <span class="button"><strong>Morphological operations</strong></span>
+                            <ul class="panel border vertical">
+                            </ul>
+                        </li>
+		    			<li class="dropdown">
+		    				<span class="button"><strong>Filters</strong></span>
+		    				<ul class="panel border vertical">
+				    		</ul>
+		    			</li>
+                        <li class="dropdown">
+                            <span class="button"><strong>Template Matching</strong></span>
+                        </li>
+                        <li class="dropdown">
+                            <span class="button"><strong>Edge</strong></span>
+                            <ul class="panel border vertical">
+                                <li><span class="divisor">Detection</span></li>
+                                <li>
+                                	<span class="button" onclick="edge.detector.homogeneity({ layer: control.getLayer() });">
+                                		<strong>Homogeneity</strong>
+                                	</span>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="dropdown">
+                            <span class="button"><strong>Segmentation</strong></span>
+                            <ul class="panel border vertical">
+                            </ul>
+                        </li>
+                        <li class="dropdown">
+                            <span class="button"><strong>Image Operations</strong></span>
+                            <ul class="panel border vertical">
+                            </ul>
+                        </li>
+                        <li class="dropdown">
+                            <span class="button"><strong>Examples</strong></span>
+                            <ul class="panel border vertical">
+                            </ul>
+                        </li>
+		    		</ul>
+		    		</ul>
+	    		</div>
+	    		<span class="clear"></span>
+    		</div>
+
+    		<div id="tab_container" class="panel border"><!-- TAB CONTAINER -->
+    		</div>
+        </div>
+        <div id="workspace">
+            <div id="td_canvas"><!-- CANVAS -->
+            	<canvas id="cnv_workspace">
+            		
+            	</canvas>
+            	<canvas id="cnv_buffer"></canvas>
+            	<!-- MODAL WINDOWS -->
+            	<!--div class="modal" id="">
+            		<h3>Threshold <a class="close_btn">x</a></h3>
+            		<div>
+            			<label>Threshold Level:</label><input value="120" type="text" id="threshold_level" />
+            			<button onclick="adjustaments.threshold(control.getImg(), document.getElementById('threshold_level').value) ">OK</button>
+            			<canvas width="255" height="100"></canvas>
+            		</div>
+            	</div-->
+                <!--HISTOGRAMS HSV-->
+            	<div id="hsv_histogram" style="position:absolute; bottom:0; display:none" class="panel border">
+            		H<canvas id="cnv_histogram_h" width="360" height="100"></canvas>
+            		S<canvas id="cnv_histogram_s" width="100" height="100"></canvas>
+            		V<canvas id="cnv_histogram_v" width="100" height="100"></canvas>
+            	</div>
+            </div>
+            <div id="td_panel"> 
+	    		<div class="panel border"> 
+	    			<div class="light padding">
+	    				Layers
+	    			</div>
+	    		</div>
+	    		<div> 
+    				<ul id="list_layers" class="vertical">	
+    				</ul>
+	    		</div>
+	    		<div class="panel border"> 
+	    			<div class="light padding">
+                        <span class="button"><strong>Duplicate</strong></span>
+                        <span class="button"><strong>Delete</strong></span>
+	    			</div>
+	    		</div>
+            </div>
+        </div>
+        <script src="attempt.js"></script>
+        <!--LOAD CLASSES-->
+        <script src="classes/adjustaments.js"></script>
+        
+        <script src="classes/utils.js"></script>
+        <script src="classes/layer.js"></script>
+        <script src="classes/archive.js"></script>
+        <script src="classes/canvas.js"></script>
+        <script src="classes/control.js"></script>
+        <!--INITIALIZATION-->
+        <script> 
+        	control.init();
+        	attempt();            
+        </script>
+    </body>
+</html>
+ 
