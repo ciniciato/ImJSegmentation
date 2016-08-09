@@ -33,6 +33,7 @@ control.getLayer = function(){
 
 control.init = function(){
 	canvas.init();
+	modal.init();
 	document.getElementById('openFile').addEventListener('change', this.openArchive, false);
 }
 
@@ -69,7 +70,6 @@ control.changeArchive = function(_){
 }
 
 control.openArchive = function(evt) {
-	console.log(evt);
     var files = evt.target.files; // FileList object
     // Loop through the FileList and load archives
     for (var i = 0, f; f = files[i]; i++) {
