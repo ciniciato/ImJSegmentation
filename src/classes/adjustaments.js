@@ -1,12 +1,10 @@
 //adjustaments.invert([data, draw]) = INVERT COLORS
-var adjustaments = 
-{
-	invert : function(_)//data(matrix), draw
-	{ 
-	    var data = _.data,
-			height = data.length,
-			width = data[0].length;
-			draw = (_.draw === undefined) ? false : true;
+var adjustaments = {
+	invert : function(_data, _draw){ 
+	    var data = _data,
+			width = data.length,
+			height = data[0].length,
+			draw = (_draw === undefined) ? false : _draw;
 
 		var log = 'Invert';
 		console.time(log);
@@ -14,7 +12,7 @@ var adjustaments =
 		{
 			for (x = 0; x < width; x++)
 			{ 
-				data[y][x] = [255 - data[y][x][0], 255 - data[y][x][1], 255 - data[y][x][2]];
+				data[x][y] = [255 - data[x][y][0], 255 - data[x][y][1], 255 - data[x][y][2]];
 			}//for x
 		}//for y
 		if (draw){
@@ -22,12 +20,11 @@ var adjustaments =
 		}
 	    console.timeEnd(log);
 	},
-	desaturate : function(_)//data(matrix), draw
-	{ 
-	    var data = _.data,
-			height = data.length,
-			width = data[0].length;
-			draw = (_.draw === undefined) ? false : true;
+	desaturate : function(_data, _draw){
+	    var data = _data,
+			width = data.length,
+			height = data[0].length,
+			draw = (_draw === undefined) ? false : _draw;
 
 		var log = 'Desaturate';
 		console.time(log);
@@ -35,8 +32,8 @@ var adjustaments =
 		{
 			for (x = 0; x < width; x++)
 			{ 
-				var gray = (data[y][x][0]+data[y][x][1]+data[y][x][2])/3;
-				data[y][x] = [gray, gray, gray];
+				var gray = (data[x][y][0]+data[x][y][1]+data[x][y][2])/3;
+				data[x][y] = [gray, gray, gray];
 			}//for x
 		}//for y
 		if (draw){
@@ -44,54 +41,65 @@ var adjustaments =
 		}
 	    console.timeEnd(log);
 	},
-	threshold : function(_)//data(matrix), draw, level
-	{ 
-	    var data = _.data,
-			height = data.length,
-			width = data[0].length,
-			draw = (_.draw === undefined) ? false : true,
-			level = (_.level === undefined) ? 128 : _.level;
+	threshold : function(_data, _draw, _){//data(matrix), draw, level 
+		if (_ === undefined) _ = {};
+	    var data = _data,
+			width = data.length,
+			height = data[0].length,
+			draw = (_draw === undefined) ? false : _draw,
+			level = (_.level === undefined) ? 128 : _.level,
+			newData = [];
+		if (!draw)
+		{
+			newData = new Array(width);
+			for (var x = 0; x < width; x++) newData[x] = [];
+		} 
+		else
+			newData = data;		
 
 		var log = 'Threshold[level:'+level+']';
 		console.time(log);
 		for (y = 0; y < height; y++)
 		{
 			for (x = 0; x < width; x++)
-			if(data[y][x][0] < 256)
+				if(data[x][y][0] < 256)
 				{ 
-					var gray = (data[y][x][0]+data[y][x][1]+data[y][x][2])/3;
+					var gray = (data[x][y][0]+data[x][y][1]+data[x][y][2])/3;
+					
 					if (gray > level)
-						data[y][x] = [255, 255, 255];
+						newData[x][y] = [255, 255, 255];
 					else
-						data[y][x] = [0, 0, 0];
+						newData[x][y] = [0, 0, 0];
 				}//for x
 		}//for y
-		if (draw){
-			canvas.draw({img: control.archives.current.getImg()});
-		}
 	    console.timeEnd(log);
+		if (draw)
+			canvas.draw({img: control.archives.current.getImg()});
+		else
+			return newData;
 	},
-	adaptativeThreshold : function(_){//data, draw, windowSize, threshold
-	    var data = _.data,
-			height = data.length,
-			width = data[0].length;
-			draw = (_.draw === undefined) ? false : true,
+	adaptativeThreshold : function(_data, _draw, _){
+		if (_ === undefined) _ = {};
+	    var data = _data,
+			width = data.length,
+			height = data[0].length;
+			draw = (_draw === undefined) ? false : _draw,
 			iData = [],//integralized data
 			windowSize = (_.windowSize == undefined) ? Math.ceil(width/20) : _.windowSize,
 			threshold = (_.threshold == undefined) ? 5 : _.threshold;
 
-		var log = 'Adaptative threshold, windowSize:'+windowSize+' threshold:'+threshold+'%';
+		var log = 'Adaptative threshold[windowSize:'+windowSize+'; threshold:'+threshold+'%]';
 		console.time(log);
 		//INTEGRALIZE DATA
-		for (y = 0; y < height; y++)
+		for (x = 0; x < width; x++)
 		{
-			iData[y] = [];
-			for (x = 0; x < width; x++)
+			iData[x] = [];
+			for (y = 0; y < height; y++)
 			{ 
-				var A = ( x - 1 < 0 || y - 1 < 0 ) ? 0 : iData[y-1][x-1];
-					B = ( y - 1 < 0 ) ? 0 : iData[y-1][x];
-					C = ( x - 1 < 0 ) ? 0 : iData[y][x-1];
-				iData[y][x] = C - A + B + data[y][x][0]/255;
+				var A = ( x - 1 < 0 || y - 1 < 0 ) ? 0 : iData[x-1][y-1];
+					B = ( y - 1 < 0 ) ? 0 : iData[x][y-1];
+					C = ( x - 1 < 0 ) ? 0 : iData[x-1][y];
+				iData[x][y] = C - A + B + data[x][y][0]/255;
 			}//for x
 		}//for y
 		for (y = 0; y < height; y++)
@@ -103,17 +111,104 @@ var adjustaments =
 					posB = {x: (x + windowSize >= width) ? width-1: x + windowSize, 
 							y: (y + windowSize >= height) ? height-1: y + windowSize};
 				var count = (posB.x - posA.x)*(posB.y - posA.y);
-				var A = iData[posB.y][posB.x], 
-					B = (posA.y - 1 < 0) ? 0 : iData[posA.y - 1][posB.x],
-					C = (posA.x - 1 < 0) ? 0 : iData[posB.y][posA.x - 1],
-					D = (posA.x - 1 < 0 || posA.y - 1 < 0) ? 0 : iData[posA.y - 1][posA.x - 1];
-
+				var A = iData[posB.x][posB.y], 
+					B = (posA.y - 1 < 0) ? 0 : iData[posB.x][posA.y - 1],
+					C = (posA.x - 1 < 0) ? 0 : iData[posA.x - 1][posB.y],
+					D = (posA.x - 1 < 0 || posA.y - 1 < 0) ? 0 : iData[posA.x - 1][posA.y - 1];
 
 				var sum = A - B - C + D;
-			 	if (data[y][x][0] * count/255 <= (sum * (100 -  threshold)/100) )
-					data[y][x] = [0, 0, 0]
+			 	if (data[x][y][0] * count/255 <= (sum * (100 -  threshold)/100) )
+					data[x][y] = [0, 0, 0]
 				else 
-					data[y][x] = [255, 255, 255];
+					data[x][y] = [255, 255, 255];
+			}//for x
+		}//for y
+		if (draw){
+			canvas.draw({img: control.archives.current.getImg()});
+		}
+	    console.timeEnd(log);
+	},
+	linearPieceWise : function(_data, _draw, _){//points:[{i:0, o:0}] i = input pix, o = output pix
+		var log = 'linearPieceWise[points:';
+	    var data = _data,
+			width = data.length,
+			height = data[0].length;
+			draw = (_draw === undefined) ? false : _draw;
+		//ADD POINTS
+		var points = [{i: 0, o: 0}];
+		for (var i = 0; i < _.points.length; i++) points.push({i: _.points[i].i, o: _.points[i].o});
+		points.push({i: 255, o: 255})
+		//CALCULATE LINEAR FUNCTIONS
+		var slope = [], intercept = [];
+		var lookUp = new Array();
+		for (var i = 0; i < points.length-1; i++){
+			slope.push((points[i+1].o - points[i].o)/(points[i+1].i - points[i].i));
+			intercept.push(points[i+1].o - slope.last() * points[i+1].i);
+			for (var k = points[i].i; k < points[i+1].i; k++)
+					lookUp.push(i)
+			log += '{i: '+points[i].i+', o: '+points[i].o+'}, ';
+		}
+		lookUp.push(slope.length-1);
+		log += '{i: '+points[i].i+', o: '+points[i].o+'}]';
+		console.time(log);
+		for (y = 0; y < height; y++)
+		{
+			for (x = 0; x < width; x++)	
+			{ 
+				var rgb = data[x][y];
+				data[x][y][0] =  slope[lookUp[rgb[0]]]*rgb[0] + intercept[lookUp[rgb[0]]];
+				data[x][y][1] =  slope[lookUp[rgb[1]]]*rgb[1] + intercept[lookUp[rgb[1]]];
+				data[x][y][2] =  slope[lookUp[rgb[2]]]*rgb[2] + intercept[lookUp[rgb[2]]];
+			}//for x
+		}//for y
+		if (draw){
+			canvas.draw({img: control.archives.current.getImg()});
+		}
+	    console.timeEnd(log);
+	},
+	histogramEqualization: function(_data, _draw){//SHIH 2010
+	    var data = _data,
+			width = data.length,
+			height = data[0].length;
+			draw = (_draw === undefined) ? false : _draw;
+
+		var log = 'histogramEqualization';
+		console.time(log);
+		//HISTOGRAM COUNT
+		var step = 20, pixN = 0, histogram = [new Array(256).fill(0), new Array(256).fill(0), new Array(256).fill(0)];
+		for (y = 0; y < height; y+= step)
+		{
+			for (x = 0; x < width; x+= step)
+			{ 
+				var rgb = data[x][y];
+				histogram[0][rgb[0]]++;
+				histogram[1][rgb[1]]++;
+				histogram[2][rgb[2]]++;
+				pixN++;
+			}//for x
+		}//for y
+		//CUMULATIVE PROBABILITY
+		var probHistogram = [new Array(256).fill(0), new Array(256).fill(0), new Array(256).fill(0)],
+			sum = [0, 0, 0]
+		for (var i = 0; i < 256; i++){
+			sum[0] += histogram[0][i]; 
+			probHistogram[0][i] = sum[0]/pixN;
+
+			sum[1] += histogram[1][i]; 
+			probHistogram[1][i] = sum[1]/pixN;
+
+			sum[2] += histogram[2][i]; 
+			probHistogram[2][i] = sum[2]/pixN;
+		}
+		for (y = 0; y < height; y++)
+		{
+			for (x = 0; x < width; x++)
+			{ 
+				var rgb = data[x][y];
+				data[x][y][0] = Math.round(probHistogram[0][rgb[0]]*255);
+				data[x][y][1] = Math.round(probHistogram[0][rgb[1]]*255);
+				data[x][y][2] = Math.round(probHistogram[0][rgb[2]]*255);
+
 			}//for x
 		}//for y
 		if (draw){

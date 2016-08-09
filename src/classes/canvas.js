@@ -38,7 +38,7 @@ canvas.loadBuffer = function(_path, onload_callback){
 	img.src = _path;
 	var that = this;
 	img.onload = function(){
-		that.buffer.width = img.naturalWidth;
+		that.buffer.width =  img.naturalWidth;
 		that.buffer.height = img.naturalHeight;
 		that.buffer.ctx.drawImage(img, 0, 0);//draw img
 		var imgData = that.buffer.ctx.getImageData(0, 0, that.buffer.width, that.buffer.height);
@@ -51,14 +51,31 @@ canvas.loadImg = function(_path, onload_callback){
 	img.src = _path;
 	var that = this;
 	img.onload = function(){		
-		that.obj.width = img.naturalWidth;
-		that.obj.height = img.naturalHeight;
-		
+		if (img.naturalWidth > that.obj.parentElement.offsetWidth || img.naturalHeight > that.obj.parentElement.offsetHeight)
+		{
+			var ratio = img.naturalWidth/img.naturalHeight,
+				elRatio = that.obj.parentElement.offsetWidth/that.obj.parentElement.offsetHeight;
+			if (img.naturalWidth > img.naturalHeight && elRatio < ratio)
+			{
+				that.obj.width = that.obj.parentElement.offsetWidth;
+				that.obj.height = that.obj.width*img.naturalHeight/img.naturalWidth;
+			}
+			else
+			{
+				that.obj.height = that.obj.parentElement.offsetHeight;
+				that.obj.width = that.obj.height*img.naturalWidth/img.naturalHeight;
+			}
+		}
+		else
+		{
+			that.obj.width = img.naturalWidth;
+			that.obj.height = img.naturalHeight;			
+		}		
 		that.resize();
 		that.clear();
 		
-		that.ctx.drawImage(img, 0, 0);//draw img
-		var imgData = that.ctx.getImageData(0, 0, img.naturalWidth, img.naturalHeight);
+		that.ctx.drawImage(img, 0, 0, that.obj.width, that.obj.height);//draw img
+		var imgData = that.ctx.getImageData(0, 0, that.obj.width, that.obj.height);
 		onload_callback({data: imgData });//get img data
 	}	
 }

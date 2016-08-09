@@ -26,11 +26,11 @@ archive.prototype.getImg = function()
 			{
 				var index = (x + y * this.img.width) * 4;
 				var data = this.layers.items[i].data;
-				if (data[y][x][0] != 256 && data[y][x][1] != 256 && data[y][x][0] != 256)//256,256,256 = TRANSPARENT
+				if (data[x][y][0] != 256 && data[x][y][1] != 256 && data[x][y][0] != 256)//256,256,256 = TRANSPARENT
 				{
-					this.img.data[index+0] = data[y][x][0];
-					this.img.data[index+1] = data[y][x][1];
-					this.img.data[index+2] = data[y][x][2];
+					this.img.data[index+0] = data[x][y][0];
+					this.img.data[index+1] = data[x][y][1];
+					this.img.data[index+2] = data[x][y][2];
 					this.img.data[index+3] = 255;		
 				}
 			}

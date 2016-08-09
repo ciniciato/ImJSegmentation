@@ -22,62 +22,127 @@
                                 		<strong>Open...</strong>
                                 		<input class="loadFile" id="openFile" type="file" id="files" name="files[]" multiple />
                                 	</span>
+                                </li>
                                 <li><span class="button" onclick=""><strong>Save...</strong></span></li>
                                 <li><span class="button" onclick=""><strong>Duplicate</strong></span></li>
+                            </ul>
+                        </li>
+                        <li class="dropdown">
+                            <span class="button"><strong>Edit</strong></span>
+                            <ul class="panel border vertical">
+                                <li><span class="button" onclick=""><strong>Undo</strong></span></li>
+                                <li><span class="button" onclick=""><strong>Redo</strong></span></li>
                             </ul>
                         </li>
 		    			<li class="dropdown">
 		    				<span class="button"><strong>Adjustaments</strong></span>
 		    				<ul class="panel border vertical">
 				    			<li>
-				    				<span class="button" onclick="adjustaments.invert({data: control.getLayer().data, draw: true});">
+				    				<span class="button" onclick="adjustaments.invert(control.getLayer().data, true);">
 				    					<strong>Invert</strong>
 				    				</span>
 				    			</li>
                                 <li>
-                                    <span class="button" onclick="adjustaments.desaturate({data: control.getLayer().data, draw: true});">
+                                    <span class="button" onclick="adjustaments.desaturate(control.getLayer().data, true);">
                                         <strong>Desaturate</strong>
                                     </span>
                                 </li>
+                                <li><!--adjustaments.threshold(control.getLayer().data, true);-->
+                                    <span class="button" onclick="modal.open('threshold');">
+                                        <strong>Threshold...</strong>
+                                    </span>
+                                </li>
                                 <li>
-                                    <span class="button" onclick="adjustaments.adaptativeThreshold({data: control.getLayer().data, draw: true});">
+                                    <span class="button" onclick="adjustaments.adaptativeThreshold(control.getLayer().data, true);">
                                         <strong>Adaptative Threshold...</strong>
+                                    </span>
+                                </li>
+                                <li>
+                                    <span class="button" onclick="adjustaments.linearPieceWise(control.getLayer().data, true, { points: [{i: 50, o: 0}, {i: 200, o: 255}] });">
+                                        <strong>Linear Piecewise...</strong>
+                                    </span>
+                                </li>
+                                <li>
+                                    <span class="button" onclick="adjustaments.histogramEqualization(control.getLayer().data, true);">
+                                        <strong>Histogram Equalization</strong>
                                     </span>
                                 </li>
 				    		</ul>
 		    			</li>
-                        <li class="dropdown">
-                            <span class="button"><strong>Morphological operations</strong></span>
-                            <ul class="panel border vertical">
-                            </ul>
-                        </li>
 		    			<li class="dropdown">
 		    				<span class="button"><strong>Filters</strong></span>
 		    				<ul class="panel border vertical">
+                                <li><span class="divisor">Blur</span></li>
+                                <li>
+                                	<span class="button" onclick="filters.meanBlur(control.getLayer().data, true, {size: 3});">
+                                		<strong>Mean...</strong>
+                                	</span>
+                                </li>
+                                <li>
+                                	<span class="button" onclick="filters.gaussianBlur(control.getLayer().data, true, {size: 3, sigma: 1.4});">
+                                		<strong>Gaussian...</strong>
+                                	</span>
+                                </li>
+                                <li><span class="divisor">Simplify</span></li>
+                                <li>
+                                	<span class="button" onclick="filters.pixelate(control.getLayer().data, true, {size: 5});">
+                                		<strong>Pixelate...</strong>
+                                	</span>
+                                </li>
+                                <li><span class="divisor">Band pass</span></li>
+                                <li>
+                                	<span class="button" onclick="filters.medianFilter(control.getLayer().data, true, {size: 3});">
+                                		<strong>Median...</strong>
+                                	</span>
+                                </li>
+                                <li>
+                                	<span class="button" onclick="filters.lowFilter(control.getLayer().data, true, {size: 3});">
+                                		<strong>Low...</strong>
+                                	</span>
+                                </li>
+                                <li><span class="divisor">Edge</span></li>
+                                <li>
+                                	<span class="button" onclick="filters.LoGEdge(control.getLayer().data, true, {size: 3, sigma: 1.4});">
+                                		<strong>Laplacian of Gaussian</strong>
+                                	</span>
+                                </li>
+                                <li>
+                                	<span class="button" onclick="filters.laplacianEdge(control.getLayer().data, true);">
+                                		<strong>Laplacian</strong>
+                                	</span>
+                                </li>
+                                <li>
+                                	<span class="button" onclick="filters.sobelEdge(control.getLayer().data, true);">
+                                		<strong>Sobel</strong>
+                                	</span>
+                                </li>
 				    		</ul>
 		    			</li>
                         <li class="dropdown">
-                            <span class="button"><strong>Template Matching</strong></span>
-                        </li>
-                        <li class="dropdown">
-                            <span class="button"><strong>Edge</strong></span>
-                            <ul class="panel border vertical">
-                                <li><span class="divisor">Detection</span></li>
-                                <li>
-                                	<span class="button" onclick="edge.detector.homogeneity({ layer: control.getLayer() });">
-                                		<strong>Homogeneity</strong>
-                                	</span>
-                                </li>
-                            </ul>
-                        </li>
-                        <li class="dropdown">
                             <span class="button"><strong>Segmentation</strong></span>
                             <ul class="panel border vertical">
-                            </ul>
-                        </li>
-                        <li class="dropdown">
-                            <span class="button"><strong>Image Operations</strong></span>
-                            <ul class="panel border vertical">
+                                <li><span class="divisor">Region Grow</span></li>
+                                <li>
+                                	<span class="button" onclick="segmentation.regionsGrowRGB(control.getLayer().data, true, { threshold: 30, simbolicColor: false });">
+                                		<strong>RGB</strong>
+                                	</span>
+                                </li>
+                                <li>
+                                	<span class="button" onclick="segmentation.regionsGrowHSV(control.getLayer().data, true, { threshold: 15, simbolicColor: false });">
+                                		<strong>HSV</strong>
+                                	</span>
+                                </li>
+                                <li>
+                                	<span class="button" onclick="segmentation.regionsGrowYCC(control.getLayer().data, true, { threshold: 10, simbolicColor: true });">
+                                		<strong>YCC</strong>
+                                	</span>
+                                </li>
+                                <li><span class="divisor">Binary</span></li>
+                                <li>
+                                	<span class="button" onclick="segmentation.distanceTransform(control.getLayer().data, true);">
+                                		<strong>Distance Transform</strong>
+                                	</span>
+                                </li>
                             </ul>
                         </li>
                         <li class="dropdown">
@@ -100,15 +165,6 @@
             		
             	</canvas>
             	<canvas id="cnv_buffer"></canvas>
-            	<!-- MODAL WINDOWS -->
-            	<!--div class="modal" id="">
-            		<h3>Threshold <a class="close_btn">x</a></h3>
-            		<div>
-            			<label>Threshold Level:</label><input value="120" type="text" id="threshold_level" />
-            			<button onclick="adjustaments.threshold(control.getImg(), document.getElementById('threshold_level').value) ">OK</button>
-            			<canvas width="255" height="100"></canvas>
-            		</div>
-            	</div-->
                 <!--HISTOGRAMS HSV-->
             	<div id="hsv_histogram" style="position:absolute; bottom:0; display:none" class="panel border">
             		H<canvas id="cnv_histogram_h" width="360" height="100"></canvas>
@@ -134,10 +190,36 @@
 	    		</div>
             </div>
         </div>
-        <script src="attempt.js"></script>
+
+    	<!-- MODAL WINDOWS -->
+    	<div class="bg-modal" id="modal">
+        	<div class="modal panel border" id="window">
+        		<h3><span id="title"></span> <a class="close_btn" onclick="modal.close();">x</a></h3>
+        		<div class="content">
+	        		<div class="preview">
+	        			<canvas id="cnv_preview" class="border" width="300" height="300"></canvas>
+	        		</div>
+	        		<div>
+	        			<div id="content">
+		        		</div>
+	        			<div class="buttons">
+	                        <span class="button" onclick="modal.apply();"><strong>Ok</strong></span>
+	                        <span class="button" onclick="modal.close();"><strong>Cancel</strong></span>
+		    				<span class="clear"></span>
+	                    </div>
+	        		</div>
+		    		<span class="clear"></span>
+		    	</div>
+        	</div>
+        </div>
+
         <!--LOAD CLASSES-->
         <script src="classes/adjustaments.js"></script>
+        <script src="classes/filters.js"></script>
+        <script src="classes/segmentation.js"></script>
+        <script src="classes/transform.js"></script>
         
+        <script src="classes/modal.js"></script>
         <script src="classes/utils.js"></script>
         <script src="classes/layer.js"></script>
         <script src="classes/archive.js"></script>

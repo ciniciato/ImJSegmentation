@@ -7,9 +7,27 @@
 //euclideanDistance
 //simplifyPoints
 //sortPoly
+function degToRad(_deg){
+	return Math.PI*_deg/180;
+}
+const 	CROSSNEIGHBORS = [	{x: 1, y: 0, d: 1, theta: degToRad(0)},//right|east 
+							{x: 0, y:-1, d: 1, theta: degToRad(90)},//top|north
+							{x: 0, y: 1, d: 1, theta: degToRad(180)},//left|west
+							{x:-1, y: 0, d: 1, theta: degToRad(270)}],//bottom|south
+
+	 	SQUARENEIGHBORS = [	{x: 1, y: 0, d: 1,            theta: degToRad(0)},//right|east = 0 degree
+							{x: 1, y: 1, d: Math.sqrt(2), theta: degToRad(45)},//nort-east = 45 degree
+							{x: 0, y:-1, d: 1,            theta: degToRad(90)},//top|north = 90 degree
+							{x:-1, y: 1, d: Math.sqrt(2), theta: degToRad(135)},//north-west = 135 degree
+							{x: 0, y: 1, d: 1,            theta: degToRad(180)},//left|west
+							{x:-1, y:-1, d: Math.sqrt(2), theta: degToRad(225)},//south-west
+							{x:-1, y: 0, d: 1,            theta: degToRad(270)},//bottom|south
+							{x: 1, y:-1, d: Math.sqrt(2), theta: degToRad(315)}];//south-east
+
 
 //CONVERT RGB(Red, Green, Blue) COLOR TO HSV(Hue, Saturation, Value)
-function RGBtoHSV(_rgb){//Travis method
+function RGBtoHSV(_rgb, _normalize){//Travis method
+	var normalize = (_normalize === undefined) ? false : _normalize;
 	_rgb = [_rgb[0]/255, _rgb[1]/255, _rgb[2]/255];//normalize
 	var min = 255, max = 0, delta;
 	var HSV = [0, 0, 0];
@@ -36,7 +54,10 @@ function RGBtoHSV(_rgb){//Travis method
 		HSV[1] = 0;
 		HSV[0] = 361;	
 	} 
-	HSV = [Math.round(HSV[0]), Math.round(HSV[1]*100), Math.round(HSV[2]*100)];
+	if (normalize)
+		HSV = [Math.round(HSV[0])/360, Math.round(HSV[1]*100), Math.round(HSV[2]*100)]
+	else
+		HSV = [Math.round(HSV[0]), Math.round(HSV[1]*100), Math.round(HSV[2]*100)];
 	return HSV;
 }
 //CONVERT HSV(Hue, Saturation, Value) COLOR TO RGB(Red, Green, Blue)
@@ -81,6 +102,20 @@ function HSVtoRGB(_hsv){//Travis method
 	return [Math.round(RGB[0]*255), Math.round(RGB[1]*255), Math.round(RGB[2]*255)];
 }
 
+//YCbCr
+//Y[16,235] Cb,Cr[16,240]
+function RGBtoYCC(_rgb, _normalize){
+	normalize = (_normalize !== undefined) ? _normalize : false;
+	var r = _rgb[0]/255, g = _rgb[1]/255, b = _rgb[2]/255;
+	var Y  = Math.round(r*65.481+g*128.553+b*24.966);
+		Cb = Math.round(r*(-39.797)+g*(-70.203)+b*112);
+		Cr = Math.round(r*112+g*(-93.786)+b*(-18.214));
+	if (normalize)
+		return [100*Y/219, 100*(Cb+112)/224, 100*(Cr+112)/224];
+	else
+		return [Y+16, Cb+128, Cr+128];
+}
+
 //RETURN LAST ELEMENT IN ARRAY
 Array.prototype.last = function(pos){
     var ind = (pos == undefined) ? 1 : (1 + Math.abs(pos));
@@ -122,22 +157,34 @@ Array.prototype.sum = function(){
 		if (this[i].length !== undefined){
 			sum += this[i].sum();
 		} else
-			sum += this[i];
+			sum = Math.round((sum+this[i])*10000)/10000;
 	}
-	return sum;
+	return Math.round(sum*10000)/10000;
 }
 
 
-ImageData.prototype.set = function(data, gray){
-	gray = (gray === undefined) ? false : gray;
-	if (gray){
-		for (var i = 0; i < data.length; i++){
-			this.data[i*4] = this.data[i*4+1] = this.data[i*4+2] = data[i];
+ImageData.prototype.set = function(_data){
+	var data   = _data,
+		width  = data.length,
+		height = data[0].length;
+	for (y = 0; y < height; y++)
+	{
+		for (x = 0; x < width; x++)
+		{
+			var index = (x + y * width) * 4;
+			if (data[x][y][0] != 256 && data[x][y][1] != 256 && data[x][y][0] != 256)
+			{
+				this.data[index] = data[x][y][0];
+				this.data[index+1] = data[x][y][1];
+				this.data[index+2] = data[x][y][2];
+				this.data[index+3] = 255;
+			} else
+			{
+				this.data[index+3] = 0;				
+			}
 		}
-	}else
-		for (var i = 0; i < this.data.length; i++){
-			this.data[i] = data[i];
-		}
+	}
+				
 	return this;
 }; 
 
@@ -145,13 +192,13 @@ ImageData.prototype.set = function(data, gray){
 ImageData.prototype.getMatrix = function()
 {
 	var matrix = [];
-	for (var r = 0; r < this.height; r++)//for row
+	for (var c = 0; c < this.width; c++)//for column
 	{
-		matrix[r] = [];
-		for (var c = 0; c < this.width; c++)//for column
+		matrix[c] = [];
+		for (var r = 0; r < this.height; r++)//for row
 		{
 			var index = (c + r * this.width) * 4;
-			matrix[r][c] = [ this.data[index], this.data[index+1], this.data[index+2] ];//rgb colors
+			matrix[c][r] = [ this.data[index], this.data[index+1], this.data[index+2] ];//rgb colors
 		}
 	}
 	return matrix;
@@ -233,14 +280,14 @@ copyData = function(_src, _tgt)
 {
 	var isNew  =  (_tgt === undefined);
 	var newData = (_tgt !== undefined) ? _tgt : [];
-	var height = _src.length,
-		width  = _src[0].length;
-	for (y = 0; y < height; y++)
+	var width = _src.length,
+		height  = _src[0].length;
+	for (x = 0; x < width; x++)
 	{
-		if (isNew) newData[y] = [];
-		for (x = 0; x < width; x++)
+		if (isNew) newData[x] = [];
+		for (y = 0; y < height; y++)
 		{
-			newData[y][x] = [_src[y][x][0], _src[y][x][1], _src[y][x][2]];
+			newData[x][y] = [_src[x][y][0], _src[x][y][1], _src[x][y][2]];
 		}
 	}
 	return newData;
@@ -266,5 +313,28 @@ gausianMask = function(_sigma, _size)
         mask[k][l] = Math.round(normalize * mask[k][l] * 1000)/1000;
       }
     }
+    return mask;
+};
+
+//Laplace of Gaussian
+LoGMask = function(_sigma, _size)
+{
+	var sigma = _sigma,
+	 	size = _size;
+    var mask = [];
+    for (var x = -(size - 1)/2, j = 0; j < size; x++, j++)
+    {
+    	mask[j] = [];
+       	for (var y = -(size - 1)/2, i = 0; i < size; y++, i++)
+		{
+			var term1 = -1/(Math.PI * Math.pow(sigma, 4) );
+			var term2 = -(y*y + x*x)/(2*sigma*sigma);
+			var term3 = Math.exp(term2);
+			mask[j][i] = 30*Math.round((term1 * ( 1 + term2 ) * term3)*10000)/10000;
+		}
+    }
+    var dif = mask.sum();
+    var center = (size-1)/2;
+    mask[center][center] -= dif; 
     return mask;
 };
