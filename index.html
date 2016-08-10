@@ -53,12 +53,12 @@
                                     </span>
                                 </li>
                                 <li>
-                                    <span class="button" onclick="adjustaments.adaptativeThreshold(control.getLayer().data, true);">
+                                    <span class="button" onclick="modal.open('adaptativeThreshold');">
                                         <strong>Adaptative Threshold...</strong>
                                     </span>
                                 </li>
                                 <li>
-                                    <span class="button" onclick="adjustaments.linearPieceWise(control.getLayer().data, true, { points: [{i: 50, o: 0}, {i: 200, o: 255}] });">
+                                    <span class="button" onclick="modal.open('linearPieceWise');">
                                         <strong>Linear Piecewise...</strong>
                                     </span>
                                 </li>
@@ -128,7 +128,7 @@
                                 	</span>
                                 </li>
                                 <li>
-                                	<span class="button" onclick="segmentation.regionsGrowHSV(control.getLayer().data, true, { threshold: 15, simbolicColor: false });">
+                                	<span class="button" onclick="modal.open('segmentationHSV');">
                                 		<strong>HSV</strong>
                                 	</span>
                                 </li>
@@ -137,17 +137,18 @@
                                 		<strong>YCC</strong>
                                 	</span>
                                 </li>
+                                <li><span class="divisor">Seed Grow</span></li>
+                                <li>
+                                	<span class="button" onclick="modal.open('seedHSV');">
+                                		<strong>HSV</strong>
+                                	</span>
+                                </li>
                                 <li><span class="divisor">Binary</span></li>
                                 <li>
                                 	<span class="button" onclick="segmentation.distanceTransform(control.getLayer().data, true);">
                                 		<strong>Distance Transform</strong>
                                 	</span>
                                 </li>
-                            </ul>
-                        </li>
-                        <li class="dropdown">
-                            <span class="button"><strong>Examples</strong></span>
-                            <ul class="panel border vertical">
                             </ul>
                         </li>
 		    		</ul>
@@ -212,6 +213,10 @@
 		    	</div>
         	</div>
         </div>
+
+        <script src="attempt.js"></script>
+        <!--LOAD LIBS-->
+        <script src="lib/pointer.js"></script>
 
         <!--LOAD CLASSES-->
         <script src="classes/adjustaments.js"></script>

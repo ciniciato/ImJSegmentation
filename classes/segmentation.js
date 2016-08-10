@@ -186,10 +186,21 @@ var segmentation = {
 			labeledData = [],
 			neighbors = [],
 			regionIndex = 0,
-			regions = [];
+			regions = [],
+			newData = [];
 
-		var log = 'regionsGrowHSV';
-		console.time(log);
+		if (!draw)
+		{
+			newData = new Array(width);
+			for (var x = 0; x < width; x++) newData[x] = new Array(height);
+		} 
+		else
+		{
+			newData = data;	
+			var log = 'regionsGrowHSV';
+			console.time(log);
+		}
+
 		function similarity(pixA, pixB){
 			var H = pixA[0] - pixB[0],
 				S = pixA[1] - pixB[1],
@@ -259,13 +270,15 @@ var segmentation = {
 			for (x = 0; x < width; x++)
 			{
 				var color = regions[labeledData[x][y]];
-				data[x][y] = [color[0], color[1], color[2]];
+				newData[x][y] = [color[0], color[1], color[2]];
 			}
 
 		if (draw){
 			canvas.draw({img: control.archives.current.getImg()});
+	   	 	console.timeEnd(log);
 		}
-	    console.timeEnd(log);
+		else
+			return newData;
 	},
 	distanceTransform: function(_data, _draw){
 	    var data   = _data,
@@ -367,5 +380,120 @@ var segmentation = {
 			canvas.draw({img: control.archives.current.getImg()});
 		}
 	    console.timeEnd(log);
+	},
+	seedHSV: function(_data, _draw, _){
+		if (_ === undefined) _ = {};
+	    var data = _data,
+			width = data.length,
+			height = data[0].length,
+			draw = (_draw === undefined) ? false : _draw,
+			points = _.points;
+			threshold = (_.threshold === undefined) ? 10 : _.threshold,
+			simbolicColor = (_.simbolicColor === undefined) ? false : _.simbolicColor,
+			labeledData = [],
+			neighbors = [],
+			regionIndex = 0,
+			regions = [],
+			newData = [];
+
+		if (!draw)
+		{
+			newData = new Array(width);
+			for (var x = 0; x < width; x++) newData[x] = new Array(height);
+		} 
+		else
+		{
+			newData = data;	
+			var log = 'regionsGrowHSV';
+			console.time(log);
+		}
+
+		function similarity(pixA, pixB){
+			var H = pixA[0] - pixB[0],
+				S = pixA[1] - pixB[1],
+				V = pixA[2] - pixB[2];
+			return Math.sqrt(H * H + S * S + V * V);
+		}
+		var neighborsList = [	{x: 1, y: 0},//right|east 
+								{x: 0, y: 1},//bottom|west
+								{x:-1, y: 0},//left|south
+								{x: 0, y:-1}];//top|north
+		var neighborsList = [	{x: 1, y: 0},//right|east 
+								{x: 0, y: 1},//bottom|west
+								{x:-1, y: 0},//left|south
+								{x: 0, y:-1},
+								{x: 1, y: 1},
+								{x: 1, y:-1},
+								{x: -1, y: 1},
+								{x: -1, y:-1}];//top|north
+		for (x = 0; x < width; x++) labeledData[x] = new Array(height).fill(-1);
+		for (i = 0; i < points.length; i++)
+		{
+			var color = RGBtoHSV(data[points[i].x][points[i].y], true);
+			regions.push({
+				neighbors: [{x: points[i].x, y: points[i].y}],
+				color: randomColor(),
+				avg: color,
+				size: 1
+			});
+		}
+		var k = 0;
+		for (i = 0; i < regions.length; i++)
+		{
+			if (regions[i].neighbors.length>0)
+			{
+				var xC = regions[i].neighbors[0].x,
+					yC = regions[i].neighbors[0].y;
+				for (var iN = 0; iN < neighborsList.length; iN++)
+				{
+					var xN = xC + neighborsList[iN].x,
+						yN = yC + neighborsList[iN].y;
+					if (data[xN] !== undefined && data[xN][yN] !== undefined && labeledData[xN][yN] == -1)
+					{	
+						var HSV = RGBtoHSV(data[xN][yN], true);
+						if (similarity(regions[i].avg, HSV) <= threshold)
+						{
+							var size = regions[i].size;
+							regions[i].avg[0] = (size-1)*regions[i].avg[0]/size + HSV[0]/size;
+							regions[i].avg[1] = (size-1)*regions[i].avg[1]/size + HSV[1]/size;
+							regions[i].avg[2] = (size-1)*regions[i].avg[2]/size + HSV[2]/size;
+
+							regions[i].neighbors.push({x: xN, y: yN});
+							labeledData[xN][yN] = i;
+						}
+					}
+				}
+				regions[i].size++;
+				regions[i].neighbors.shift();
+			}
+			else
+			{
+				k++;
+			}
+			if (i == regions.length-1 && k < regions.length-1)
+			{
+				i=0; 
+				k = 0;
+			}
+		}//for regions
+		for (y = 0; y < height; y++)
+			for (x = 0; x < width; x++)
+			{
+				if (labeledData[x][y] == -1){
+					newData[x][y] = data[x][y];
+				}
+				else
+				{	
+					var color = regions[labeledData[x][y]].color;
+					newData[x][y] = [color[0], color[1], color[2]];
+				}
+			}
+
+		if (draw){
+			canvas.draw({img: control.archives.current.getImg()});
+	   	 	console.timeEnd(log);
+		}
+		else
+			return newData;
 	}
 }

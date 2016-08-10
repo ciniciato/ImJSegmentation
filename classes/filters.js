@@ -17,20 +17,35 @@ var filters = {
 	gaussianBlur: function(_data, _draw, _){
 		if (_ === undefined) _ = {};
 	    var data = _data,
+	    	width = data.length,
+	    	height = data[0].length,
 			draw = (_draw === undefined) ? false : _draw,
 			sigma = (_.sigma === undefined) ? 1.4 : _.sigma,
 			size = (_.size === undefined) ? 3 : _.size;
-			mask = gausianMask(sigma, size);
+			mask = gausianMask(sigma, size),
+			newData = [];
+		if (!draw)
+		{
+			newData = new Array(width);
+			for (var x = 0; x < width; x++) newData[x] = new Array(height);
+		} 
+		else
+		{
+			newData = data;	
+			console.time(log);
+		}
 
 		var log = 'gaussianBlur[size: '+size+'; sigma: '+sigma+']';
 		console.time(log);
 
-		convolutionMask(data, mask);
+		convolutionMask(newData, mask);
 		
 		if (draw){
 			canvas.draw({img: control.archives.current.getImg()});
-		}
-	    console.timeEnd(log);
+	    	console.timeEnd(log);
+		} 
+		else
+			return newData;
 	},
 	pixelate: function(_data, _draw, _){
 	    var data = _data,
@@ -225,6 +240,7 @@ var filters = {
 					}
 				}
 				var gradMagnitude = Math.sqrt(gradient.x*gradient.x + gradient.y*gradient.y);
+				if (gradMagnitude > 255) gradMagnitude = 255;
 				var gradDirection = Math.atan2(gradient.y, gradient.x);
 				newData[x][y] = [gradMagnitude, gradMagnitude, gradMagnitude];
 			}//for x
