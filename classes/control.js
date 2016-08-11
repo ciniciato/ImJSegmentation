@@ -1,4 +1,14 @@
 var control = {
+	undo: function(){
+		if (this.previousData.length > 0)
+		{
+			console.log('Undo');
+			this.previousData.last().layer.data = copyData(this.previousData.last().data);
+			this.previousData.pop();
+			canvas.draw({img: control.archives.current.getImg()});
+		}
+	},
+	previousData:[],
 	archives: {
 		current: {id: null},
 		id: 0,
@@ -34,7 +44,36 @@ control.getLayer = function(){
 control.init = function(){
 	canvas.init();
 	modal.init();
+	Keys.init();
+
+	Keys.hotkey_events.push({
+		keys: [Keys.CTRL, Keys.I],
+		event: function(){
+			apply(function(){adjustaments.invert(control.getLayer().data, true)});	
+		}
+	});
+	Keys.hotkey_events.push({
+		keys: [Keys.CTRL, Keys.SHIFT, Keys.U],
+		event: function(){
+			apply(function(){adjustaments.desaturate(control.getLayer().data, true)});	
+		}
+	});
+	Keys.hotkey_events.push({
+		keys: [Keys.CTRL, Keys.Z],
+		event: function(){
+			control.undo();
+		}
+	});
+
 	document.getElementById('openFile').addEventListener('change', this.openArchive, false);
+}
+
+apply = function(_event){
+	control.previousData.push({
+		layer: control.getLayer(),
+		data: copyData(control.getLayer().data)
+	});
+	_event();
 }
 
 control.closeArchive = function(_){

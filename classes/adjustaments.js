@@ -32,7 +32,7 @@ var adjustaments = {
 		{
 			for (x = 0; x < width; x++)
 			{ 
-				var gray = (data[x][y][0]+data[x][y][1]+data[x][y][2])/3;
+				var gray = 0.298 * data[x][y][0] + 0.586 * data[x][y][1] + 0.114 * data[x][y][2];//weighted value //avg value (data[x][y][0]+data[x][y][1]+data[x][y][2])/3;
 				data[x][y] = [gray, gray, gray];
 			}//for x
 		}//for y
@@ -55,10 +55,12 @@ var adjustaments = {
 			for (var x = 0; x < width; x++) newData[x] = [];
 		} 
 		else
+		{
+			var log = 'Threshold[level:'+level+']';
+			console.time(log);
 			newData = data;		
+		}
 
-		var log = 'Threshold[level:'+level+']';
-		console.time(log);
 		for (y = 0; y < height; y++)
 		{
 			for (x = 0; x < width; x++)
@@ -74,9 +76,11 @@ var adjustaments = {
 				else
 					newData[x][y] = [256, 256, 256];
 		}//for y
-	    console.timeEnd(log);
 		if (draw)
+		{
 			canvas.draw({img: control.archives.current.getImg()});
+	    	console.timeEnd(log);
+		}
 		else
 			return newData;
 	},
@@ -179,10 +183,7 @@ var adjustaments = {
 		{
 			for (x = 0; x < width; x++)	
 			{ 
-				var rgb =  new Uint8ClampedArray(3);
-				rgb[0] = data[x][y][0];
-				rgb[1] = data[x][y][1];
-				rgb[2] = data[x][y][2];
+				var rgb = data[x][y];
 				newData[x][y] =  [	slope[lookUp[rgb[0]]]*rgb[0] + intercept[lookUp[rgb[0]]],
 				  					slope[lookUp[rgb[1]]]*rgb[1] + intercept[lookUp[rgb[1]]],
 				  					slope[lookUp[rgb[2]]]*rgb[2] + intercept[lookUp[rgb[2]]] ];

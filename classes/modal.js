@@ -18,7 +18,6 @@ var modal = {
 			winEl = document.getElementById('window');
 		bg.style = "display: block";
 
-
 		//load preview
 		this.previewMatrix = control.getLayer().data;
 		var
@@ -51,6 +50,10 @@ var modal = {
 		document.getElementById('modal').style = "display: none";
 	},
 	apply: function(){
+		control.previousData.push({
+			layer: control.getLayer(),
+			data: copyData(control.getLayer().data)
+		});
 		this.currentWindow.apply();
 		this.close();
 	}
@@ -198,15 +201,31 @@ modal.windows = {
 					}
 					ctx.stroke();
 					modal.preview(adjustaments.linearPieceWise(modal.previewMatrix, false, { points: points }));
-				}				
+				}	
 			}
+			var data = modal.previewMatrix;
+			for (var x = 0; x < data.length; x++)	
+				for (var y = 0; y < data[0].length; y++)
+				{
+					data[x][y] = [	roundRGB(data[x][y][0]),
+									roundRGB(data[x][y][1]),
+									roundRGB(data[x][y][2])];														 	
+				}	
 			this.drawCurve();
 		},
 		preview: function(){			
 			modal.preview(adjustaments.linearPieceWise(modal.previewMatrix, false, { points: this.points }));
 		},
 		apply: function(){
-			adjustaments.linearPieceWise(control.getLayer().data, true, { points: this.points });
+			var data = control.getLayer().data;
+			for (var x = 0; x < data.length; x++)	
+				for (var y = 0; y < data[0].length; y++)
+				{
+					data[x][y] = [	roundRGB(data[x][y][0]),
+									roundRGB(data[x][y][1]),
+									roundRGB(data[x][y][2])];														 	
+				}	
+			adjustaments.linearPieceWise(data, true, { points: this.points });
 		}
 	},
 	adaptativeThreshold: {
@@ -296,5 +315,125 @@ modal.windows = {
 			console.log(transformedPoints);
 			segmentation.seedHSV(control.getLayer().data, true, { threshold: tolerance, points: transformedPoints });
 		}
-	}
+	},
+	medianFilter: {
+		caption: 'Median Filter',
+		data: null, 
+		content: 	
+					'<label>Horizontal size:</label><br><input id="hor_range" type="range" min="1" max="21" step="2" value="3" style="width:100px;"  onchange="modal.currentWindow.preview()" />'+
+					'<br>'+
+					'<label>Vertical size:</label><br><input id="vert_range" type="range" min="1" max="21" step="2" value="3" style="width:100px;"  onchange="modal.currentWindow.preview()" />'+
+					'<br>',
+		onOpen: function(){
+			this.preview();
+		},
+		preview: function(){
+			var horsize = document.getElementById('hor_range').value,
+				vertsize = document.getElementById('vert_range').value;
+			modal.preview(filters.medianFilter(modal.previewMatrix, false, { windowSize: [horsize, vertsize] }));
+		},
+		apply: function(){
+			var horsize = document.getElementById('hor_range').value,
+				vertsize = document.getElementById('vert_range').value;
+			filters.medianFilter(control.getLayer().data, true, { windowSize: [horsize, vertsize] });
+		}
+	},
+	meanFilter: {
+		caption: 'Mean Filter',
+		data: null, 
+		content: 	
+					'<label>Mask size:</label><br><input id="mask_range" type="range" min="3" max="21" step="2" value="3" style="width:100px;"  onchange="modal.currentWindow.preview()" />'+
+					'<br>',
+		onOpen: function(){
+			this.preview();
+		},
+		preview: function(){
+			var size = Number(document.getElementById('mask_range').value);
+			modal.preview(filters.meanFilter(modal.previewMatrix, false, { size: size }));
+		},
+		apply: function(){
+			var size = Number(document.getElementById('mask_range').value);
+			filters.meanFilter(control.getLayer().data, true, { size: size });
+		}
+	},
+	gaussianFilter: {
+		caption: 'Gaussian Filter',
+		data: null, 
+		content: 	
+					'<label>Mask size:</label><br><input id="mask_range" type="range" min="3" max="21" step="2" value="3" style="width:100px;"  onchange="modal.currentWindow.preview()" />'+
+					'<br>'+
+					'<label>Sigma:</label><br><input id="sigma_range" type="range" min=".5" max="5" step=".1" value="1.4" style="width:100px;"  onchange="modal.currentWindow.preview()" />'+
+					'<br>',
+		onOpen: function(){
+			this.preview();
+		},
+		preview: function(){
+			var size = Number(document.getElementById('mask_range').value),
+				sigma = Number(document.getElementById('sigma_range').value);
+			modal.preview(filters.gaussianFilter(modal.previewMatrix, false, { size: size, sigma: sigma }));
+		},
+		apply: function(){
+			var size = Number(document.getElementById('mask_range').value),
+				sigma = Number(document.getElementById('sigma_range').value);
+			filters.gaussianFilter(control.getLayer().data, true, { size: size, sigma: sigma });
+		}
+	},
+	pixelateFilter: {
+		caption: 'Pixelate Filter',
+		data: null, 
+		content: 	
+					'<label>Horizontal size:</label><br><input id="hor_range" type="range" min="1" max="21" step="2" value="3" style="width:100px;"  onchange="modal.currentWindow.preview()" />'+
+					'<br>'+
+					'<label>Vertical size:</label><br><input id="vert_range" type="range" min="1" max="21" step="2" value="3" style="width:100px;"  onchange="modal.currentWindow.preview()" />'+
+					'<br>',
+		onOpen: function(){
+			this.preview();
+		},
+		preview: function(){
+			var horsize = Number(document.getElementById('hor_range').value),
+				vertsize = Number(document.getElementById('vert_range').value);
+			modal.preview(filters.pixelate(modal.previewMatrix, false, { windowSize: [horsize, vertsize] }));
+		},
+		apply: function(){
+			var horsize = Number(document.getElementById('hor_range').value),
+				vertsize = Number(document.getElementById('vert_range').value);
+			filters.pixelate(control.getLayer().data, true, { windowSize: [horsize, vertsize] });
+		}
+	},
+	lowFilter: {
+		caption: 'Low Filter',
+		data: null, 
+		content: 	
+					'<label>Mask size:</label><br><input id="mask_range" type="range" min="3" max="21" step="2" value="3" style="width:100px;"  onchange="modal.currentWindow.preview()" />'+
+					'<br>',
+		onOpen: function(){
+			this.preview();
+		},
+		preview: function(){
+			var size = Number(document.getElementById('mask_range').value);
+			modal.preview(filters.lowFilter(modal.previewMatrix, false, { size: size }));
+		},
+		apply: function(){
+			var size = Number(document.getElementById('mask_range').value);
+			filters.lowFilter(control.getLayer().data, true, { size: size });
+		}
+	},
+	highFilter: {
+		caption: 'High Filter',
+		data: null, 
+		content: 	
+					'<label>Mask size:</label><br><input id="mask_range" type="range" min="3" max="21" step="2" value="3" style="width:100px;"  onchange="modal.currentWindow.preview()" />'+
+					'<br>',
+		onOpen: function(){
+			this.preview();
+		},
+		preview: function(){
+			var size = Number(document.getElementById('mask_range').value);
+			modal.preview(filters.highFilter(modal.previewMatrix, false, { size: size }));
+		},
+		apply: function(){
+			var size = Number(document.getElementById('mask_range').value);
+			filters.highFilter(control.getLayer().data, true, { size: size });
+		}
+	},
 }

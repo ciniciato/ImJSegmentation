@@ -1,20 +1,28 @@
 var filters = {
-	meanBlur: function(_data, _draw, _){
+	meanFilter: function(_data, _draw, _){
 	    var data = _data,
 			draw = (_draw === undefined) ? false : _draw,
 			size = (_.size === undefined) ? 3 : _.size;
-			mask = new Array(size).fill(new Array(size).fill( 1/(size*size) ));
-		var log = 'meanBlur[size: '+size+']';
-		console.time(log);
-
-		convolutionMask(data, mask);
-		
-		if (draw){
-			canvas.draw({img: control.archives.current.getImg()});
+			mask = new Array(size).fill(new Array(size).fill( 1/(size*size) )),
+			newData = [];
+		if (draw)
+		{
+			var log = 'meanFilter[size: '+size+']';
+			console.time(log);
 		}
-	    console.timeEnd(log);
+
+		newData = convolutionMask(data, mask);
+		
+		if (draw)
+		{
+			copyData(newData, data);
+			canvas.draw({img: control.archives.current.getImg()});
+	    	console.timeEnd(log);
+		}
+		else
+			return newData;
 	},
-	gaussianBlur: function(_data, _draw, _){
+	gaussianFilter: function(_data, _draw, _){
 		if (_ === undefined) _ = {};
 	    var data = _data,
 	    	width = data.length,
@@ -24,23 +32,18 @@ var filters = {
 			size = (_.size === undefined) ? 3 : _.size;
 			mask = gausianMask(sigma, size),
 			newData = [];
-		if (!draw)
+
+		if (draw)
 		{
-			newData = new Array(width);
-			for (var x = 0; x < width; x++) newData[x] = new Array(height);
-		} 
-		else
-		{
-			newData = data;	
+			var log = 'gaussianFilter[size: '+size+'; sigma: '+sigma+']';
 			console.time(log);
 		}
 
-		var log = 'gaussianBlur[size: '+size+'; sigma: '+sigma+']';
-		console.time(log);
-
-		convolutionMask(newData, mask);
+		newData = convolutionMask(data, mask);
 		
-		if (draw){
+		if (draw)
+		{
+			copyData(newData, data);
 			canvas.draw({img: control.archives.current.getImg()});
 	    	console.timeEnd(log);
 		} 
@@ -51,20 +54,28 @@ var filters = {
 	    var data = _data,
 			width = data.length,
 			height = data[0].length,
-			size = (_.size === undefined) ? 3 : _.size,
-			maskSize = Math.floor(size/2),
-			draw = (_draw === undefined) ? false : _draw;
+			windowSize = (_.windowSize === undefined) ? [3,3] : _.windowSize,
+			draw = (_draw === undefined) ? false : _draw,
+			newData = [];
 
-		var log = 'pixelate[size: '+size+']';
-		console.time(log);
-		for (y = 0; y < height; y+= size)
+		if (draw)
+		{
+			var log = 'pixelate[size: '+windowSize[0]+'x'+windowSize[1]+']';
+			console.time(log);
+			newData = data;
+		}
+		else
+		{
+			for (var x = 0; x < width; x++) newData[x] = new Array(height).fill([]);
+		}
+		for (y = 0; y < height; y+= windowSize[1])
 		{	
-			for (x = 0; x < width; x+= size)
+			for (x = 0; x < width; x+= windowSize[0])
 			{ 
 				var newColor = [0, 0, 0], pixN = 0;
-				for (var i = -maskSize; i <= maskSize; i++) 
+				for (var i = 0; i <= windowSize[0]; i++) 
 				{
-					for (var j = -maskSize; j <= maskSize; j++) 
+					for (var j = 0; j <= windowSize[1]; j++) 
 					{
 						if (data[x+i] !== undefined && data[x+i][y+j] !== undefined)
 						{
@@ -75,61 +86,82 @@ var filters = {
 						}
 					}
 				}
-				for (var i = -maskSize; i <= maskSize; i++) 
-					for (var j = -maskSize; j <= maskSize; j++)
+				newColor = [Math.round(newColor[0]/pixN), Math.round(newColor[1]/pixN), Math.round(newColor[2]/pixN)];
+				for (var i = 0; i <= windowSize[0]; i++) 
+					for (var j = 0; j <= windowSize[1]; j++)
 						if (data[x+i] !== undefined && data[x+i][y+j] !== undefined)
 						{
-							data[x+i][y+j][0] = Math.round(newColor[0]/pixN);
-							data[x+i][y+j][1] = Math.round(newColor[1]/pixN);
-							data[x+i][y+j][2] = Math.round(newColor[2]/pixN);
+							newData[x+i][y+j] = newColor;
 						}
 			}//for x
 		}//for y
 		if (draw){
 			canvas.draw({img: control.archives.current.getImg()});
+	    	console.timeEnd(log);
 		}
-	    console.timeEnd(log);
+		else
+			return newData;
 	},
 	medianFilter: function(_data, _draw, _){
 	    var data = _data,
 			width = data.length,
 			height = data[0].length,
-			size = (_.size === undefined) ? 3 : _.size,
-			maskSize = Math.floor(size/2),
+			windowSize = (_.windowSize === undefined) ? [3,3] : _.windowSize,
+			maskSize = [(windowSize[0]-1)/2, (windowSize[1]-1)/2],
 			draw = (_draw === undefined) ? false : _draw,
 			newData = [];
+		if (draw)
+		{
+			var log = 'medianFilter[size: '+windowSize[0]+'x'+windowSize[1]+']';
+			console.time(log);
+		}
 
-		var log = 'medianFilter[size: '+size+']';
-		console.time(log);
 		for (y = 0; y < height; y++)
 		{	
 			for (x = 0; x < width; x++)
 			{ 
 				if (y == 0) newData[x] = [];
 				var colors = [];
-				for (var i = -maskSize; i <= maskSize; i++) 
+				for (var i = -maskSize[0]; i <= maskSize[0]; i++) 
 				{
-					for (var j = -maskSize; j <= maskSize; j++) 
+					for (var j = -maskSize[1]; j <= maskSize[1]; j++) 
 					{
-						var iM = i + maskSize,
-							jM = j + maskSize;
+						var iM = i + maskSize[0],
+							jM = j + maskSize[1];
 						if (data[x+i] !== undefined && data[x+i][y+j] !== undefined)
 						{
-							var gray = (data[x+i][y+j][0]+data[x+i][y+j][1]+data[x+i][y+j][2])/3
-							colors.push({gray: gray, rgb: data[x+i][y+j]});
+							var avg = (data[x+i][y+j][0]+data[x+i][y+j][1]+data[x+i][y+j][2])/3
+							colors.push({avg: avg, rgb: data[x+i][y+j]});
 						}
 					}
 				}
-				var ind = Math.round(colors.length/2);
-				colors.sort((a, b) => (a.gray > b.gray));
-				newData[x][y] = [colors[ind].rgb[0], colors[ind].rgb[1], colors[ind].rgb[2]];
+				if (colors.length == 0)
+					var color = colors[0].rgb
+				else if (colors.length % 2 != 0)
+				{ 
+					var ind = (colors.length-1)/2;
+					colors.sort((a,b)=>(a.avg > b.avg));
+					var color = colors[ind].rgb;
+				}
+				else
+				{ 
+					var ind = (colors.length)/2;
+					colors.sort((a,b)=>(a.avg > b.avg));
+					var color = [(colors[ind].rgb[0]+colors[ind-1].rgb[0])/2,
+								(colors[ind].rgb[1]+colors[ind-1].rgb[1])/2,
+								(colors[ind].rgb[2]+colors[ind-1].rgb[2])/2];
+				}
+				newData[x][y] = [color[0], color[1], color[2]];
 			}//for x
 		}//for y
-		copyData(newData, data);
-		if (draw){
+		if (draw)
+		{
+			copyData(newData, data);
 			canvas.draw({img: control.archives.current.getImg()});
+	   	 	console.timeEnd(log);
 		}
-	    console.timeEnd(log);
+		else
+			return newData;
 	},
 	lowFilter: function(_data, _draw, _){
 	    var data = _data,
@@ -140,14 +172,17 @@ var filters = {
 			draw = (_draw === undefined) ? false : _draw,
 			newData = [];
 
-		var log = 'lowFilter[size: '+size+']';
-		console.time(log);
+		if (draw)
+		{
+			var log = 'lowFilter[size: '+size+']';
+			console.time(log);
+		}
 		for (y = 0; y < height; y++)
 		{	
 			for (x = 0; x < width; x++)
 			{ 
 				if (y == 0) newData[x] = [];
-				var newColor = {gray:255, rgb:[]};
+				var newColor = {avg:255, rgb:[]};
 				for (var i = -maskSize; i <= maskSize; i++) 
 				{
 					for (var j = -maskSize; j <= maskSize; j++) 
@@ -156,33 +191,83 @@ var filters = {
 							jM = j + maskSize;
 						if (data[x+i] !== undefined && data[x+i][y+j] !== undefined)
 						{
-							var gray = (data[x+i][y+j][0]+data[x+i][y+j][1]+data[x+i][y+j][2])/3;
-							if (gray < newColor.gray) newColor = {gray: gray, rgb: data[x+i][y+j]};
+							var avg = (data[x+i][y+j][0]+data[x+i][y+j][1]+data[x+i][y+j][2])/3;
+							if (avg < newColor.avg) newColor = {avg: avg, rgb: data[x+i][y+j]};
 						}
 					}
 				}
 				newData[x][y] = [newColor.rgb[0], newColor.rgb[1], newColor.rgb[2]];
 			}//for x
 		}//for y
-		copyData(newData, data);
-		if (draw){
+		if (draw)
+		{
+			copyData(newData, data);
 			canvas.draw({img: control.archives.current.getImg()});
+	   	 	console.timeEnd(log);
 		}
-	    console.timeEnd(log);
+		else
+			return newData;
 	},	
+	highFilter: function(_data, _draw, _){
+	    var data = _data,
+			width = data.length,
+			height = data[0].length,
+			size = (_.size === undefined) ? 3 : _.size,
+			maskSize = Math.floor(size/2),
+			draw = (_draw === undefined) ? false : _draw,
+			newData = [];
+
+		if (draw)
+		{
+			var log = 'highFilter[size: '+size+']';
+			console.time(log);
+		}
+		for (y = 0; y < height; y++)
+		{	
+			for (x = 0; x < width; x++)
+			{ 
+				if (y == 0) newData[x] = [];
+				var newColor = {avg:0, rgb:[]};
+				for (var i = -maskSize; i <= maskSize; i++) 
+				{
+					for (var j = -maskSize; j <= maskSize; j++) 
+					{
+						var iM = i + maskSize,
+							jM = j + maskSize;
+						if (data[x+i] !== undefined && data[x+i][y+j] !== undefined)
+						{
+							var avg = (data[x+i][y+j][0]+data[x+i][y+j][1]+data[x+i][y+j][2])/3;
+							if (avg > newColor.avg) newColor = {avg: avg, rgb: data[x+i][y+j]};
+						}
+					}
+				}
+				newData[x][y] = [newColor.rgb[0], newColor.rgb[1], newColor.rgb[2]];
+			}//for x
+		}//for y
+		if (draw)
+		{
+			copyData(newData, data);
+			canvas.draw({img: control.archives.current.getImg()});
+	   	 	console.timeEnd(log);
+		}
+		else
+			return newData;
+	},
 	LoGEdge: function(_data, _draw, _){
 		if (_ === undefined) _ = {};
 	    var data = _data,
 			draw = (_draw === undefined) ? false : _draw,
 			sigma = (_.sigma === undefined) ? 1.4 : _.sigma,
 			size = (_.size === undefined) ? 3 : _.size;
-			mask = LoGMask(sigma, size);
+			mask = LoGMask(sigma, size),
+			newData = [];
 		var log = 'LoGFilter[size: '+size+'; sigma: '+sigma+']';
 		console.time(log);
 
-		convolutionMask(data, mask);
+		newData = convolutionMask(data, mask);
 		
 		if (draw){
+			copyData(newData, data);
 			canvas.draw({img: control.archives.current.getImg()});
 		}
 	    console.timeEnd(log);
@@ -192,13 +277,15 @@ var filters = {
 			draw = (_draw === undefined) ? false : _draw,
 			mask = [[0,  1, 0],
 					[1, -4, 1],
-					[0,  1, 0]];
+					[0,  1, 0]],
+			newData = [];
 		var log = 'laplacianEdge';
 		console.time(log);
 
-		convolutionMask(data, mask);
+		newData = convolutionMask(data, mask);
 		
 		if (draw){
+			copyData(newData, data);
 			canvas.draw({img: control.archives.current.getImg()});
 		}
 	    console.timeEnd(log);
@@ -245,8 +332,8 @@ var filters = {
 				newData[x][y] = [gradMagnitude, gradMagnitude, gradMagnitude];
 			}//for x
 		}//for y
-		copyData(newData, data);
 		if (draw){
+			copyData(newData, data);
 			canvas.draw({img: control.archives.current.getImg()});
 		}
 	    console.timeEnd(log);
@@ -261,8 +348,6 @@ function convolutionMask(_data, _mask){
 		maskSize = Math.floor(_mask.length/2),
 		newData = [];
 
-	var log = 'convolutionMask';
-	console.time(log);
 	for (y = 0; y < height; y++)
 	{	
 		for (x = 0; x < width; x++)
@@ -286,6 +371,5 @@ function convolutionMask(_data, _mask){
 			newData[x][y] = [newColor[0], newColor[1], newColor[2]];
 		}//for x
 	}//for y
-	copyData(newData, data);
-    console.timeEnd(log);
+	return newData;
 }

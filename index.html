@@ -19,35 +19,34 @@
                             <ul class="panel border vertical">
                                 <li>
                                 	<span class="button" onclick="" class="loadButton">
-                                		<strong>Open...</strong>
+                                		<strong style="position:relative"><span class="left">Open...</span><em class="right">(CTRL+O)</em></strong>
                                 		<input class="loadFile" id="openFile" type="file" id="files" name="files[]" multiple />
                                 	</span>
                                 </li>
-                                <li><span class="button" onclick=""><strong>Save...</strong></span></li>
-                                <li><span class="button" onclick=""><strong>Duplicate</strong></span></li>
+                                <li><span class="button" onclick=""><strong><span class="left">Download</span><em class="right">(CTRL+S)</em></strong></span></li>
+                                <li><span class="button" onclick=""><strong><span class="left">Duplicate</span><em class="right">(CTRL+D)</em></strong></span></li>
                             </ul>
                         </li>
                         <li class="dropdown">
                             <span class="button"><strong>Edit</strong></span>
                             <ul class="panel border vertical">
-                                <li><span class="button" onclick=""><strong>Undo</strong></span></li>
-                                <li><span class="button" onclick=""><strong>Redo</strong></span></li>
+                                <li><span class="button" onclick="control.undo();"><strong><span class="left">Undo</span><em class="right">(CTRL+Z)</em></strong></span></li>
                             </ul>
                         </li>
 		    			<li class="dropdown">
 		    				<span class="button"><strong>Adjustaments</strong></span>
 		    				<ul class="panel border vertical">
 				    			<li>
-				    				<span class="button" onclick="adjustaments.invert(control.getLayer().data, true);">
-				    					<strong>Invert</strong>
+				    				<span class="button" onclick="apply(function(){adjustaments.invert(control.getLayer().data, true)});">
+				    					<strong><span class="left">Invert</span><em class="right">(CTRL+I)</em></strong>
 				    				</span>
 				    			</li>
                                 <li>
-                                    <span class="button" onclick="adjustaments.desaturate(control.getLayer().data, true);">
-                                        <strong>Desaturate</strong>
+                                    <span class="button" onclick="apply(function(){adjustaments.desaturate(control.getLayer().data, true)});">
+                                        <strong><span class="left">Desaturate</span><em class="right">(SHIFT+CTRL+U)</em></strong>
                                     </span>
                                 </li>
-                                <li><!--adjustaments.threshold(control.getLayer().data, true);-->
+                                <li>
                                     <span class="button" onclick="modal.open('threshold');">
                                         <strong>Threshold...</strong>
                                     </span>
@@ -63,7 +62,7 @@
                                     </span>
                                 </li>
                                 <li>
-                                    <span class="button" onclick="adjustaments.histogramEqualization(control.getLayer().data, true);">
+                                    <span class="button" onclick="apply(function(){adjustaments.histogramEqualization(control.getLayer().data, true)});">
                                         <strong>Histogram Equalization</strong>
                                     </span>
                                 </li>
@@ -72,47 +71,51 @@
 		    			<li class="dropdown">
 		    				<span class="button"><strong>Filters</strong></span>
 		    				<ul class="panel border vertical">
-                                <li><span class="divisor">Blur</span></li>
+                                <li><span class="divisor">Smooth / Blur / Noise removal</span></li>
                                 <li>
-                                	<span class="button" onclick="filters.meanBlur(control.getLayer().data, true, {size: 3});">
+                                	<span class="button" onclick="modal.open('meanFilter');">
                                 		<strong>Mean...</strong>
                                 	</span>
                                 </li>
                                 <li>
-                                	<span class="button" onclick="filters.gaussianBlur(control.getLayer().data, true, {size: 3, sigma: 1.4});">
+                                	<span class="button" onclick="modal.open('gaussianFilter');">
                                 		<strong>Gaussian...</strong>
                                 	</span>
                                 </li>
+                                <li>
+                                    <span class="button" onclick="modal.open('medianFilter');">
+                                        <strong>Median...</strong>
+                                    </span>
+                                </li>
+                                <li>
+                                    <span class="button" onclick="modal.open('lowFilter');">
+                                        <strong>Low...</strong>
+                                    </span>
+                                </li>
+                                <li>
+                                    <span class="button" onclick="modal.open('highFilter');">
+                                        <strong>High...</strong>
+                                    </span>
+                                </li>
                                 <li><span class="divisor">Simplify</span></li>
                                 <li>
-                                	<span class="button" onclick="filters.pixelate(control.getLayer().data, true, {size: 5});">
+                                	<span class="button" onclick="modal.open('pixelateFilter');">
                                 		<strong>Pixelate...</strong>
-                                	</span>
-                                </li>
-                                <li><span class="divisor">Band pass</span></li>
-                                <li>
-                                	<span class="button" onclick="filters.medianFilter(control.getLayer().data, true, {size: 3});">
-                                		<strong>Median...</strong>
-                                	</span>
-                                </li>
-                                <li>
-                                	<span class="button" onclick="filters.lowFilter(control.getLayer().data, true, {size: 3});">
-                                		<strong>Low...</strong>
                                 	</span>
                                 </li>
                                 <li><span class="divisor">Edge</span></li>
                                 <li>
-                                	<span class="button" onclick="filters.LoGEdge(control.getLayer().data, true, {size: 3, sigma: 1.4});">
+                                	<span class="button" onclick="apply(function(){filters.LoGEdge(control.getLayer().data, true, {size: 3, sigma: 1.4})});">
                                 		<strong>Laplacian of Gaussian</strong>
                                 	</span>
                                 </li>
                                 <li>
-                                	<span class="button" onclick="filters.laplacianEdge(control.getLayer().data, true);">
+                                	<span class="button" onclick="apply(function(){filters.laplacianEdge(control.getLayer().data, true)});">
                                 		<strong>Laplacian</strong>
                                 	</span>
                                 </li>
                                 <li>
-                                	<span class="button" onclick="filters.sobelEdge(control.getLayer().data, true);">
+                                	<span class="button" onclick="apply(function(){filters.sobelEdge(control.getLayer().data, true)});">
                                 		<strong>Sobel</strong>
                                 	</span>
                                 </li>
@@ -124,24 +127,29 @@
                                 <li><span class="divisor">Region Grow</span></li>
                                 <li>
                                 	<span class="button" onclick="segmentation.regionsGrowRGB(control.getLayer().data, true, { threshold: 30, simbolicColor: false });">
-                                		<strong>RGB</strong>
+                                		<strong>RGB...</strong>
                                 	</span>
                                 </li>
                                 <li>
                                 	<span class="button" onclick="modal.open('segmentationHSV');">
-                                		<strong>HSV</strong>
+                                		<strong>HSV...</strong>
                                 	</span>
                                 </li>
                                 <li>
                                 	<span class="button" onclick="segmentation.regionsGrowYCC(control.getLayer().data, true, { threshold: 10, simbolicColor: true });">
-                                		<strong>YCC</strong>
+                                		<strong>YCC...</strong>
                                 	</span>
                                 </li>
                                 <li><span class="divisor">Seed Grow</span></li>
                                 <li>
                                 	<span class="button" onclick="modal.open('seedHSV');">
-                                		<strong>HSV</strong>
+                                		<strong>HSV...</strong>
                                 	</span>
+                                </li>
+                                <li>
+                                    <span class="button">
+                                        <strong>Count Regions</strong>
+                                    </span>
                                 </li>
                                 <li><span class="divisor">Binary</span></li>
                                 <li>
@@ -217,6 +225,7 @@
         <script src="attempt.js"></script>
         <!--LOAD LIBS-->
         <script src="lib/pointer.js"></script>
+        <script src="lib/keys.js"></script>
 
         <!--LOAD CLASSES-->
         <script src="classes/adjustaments.js"></script>

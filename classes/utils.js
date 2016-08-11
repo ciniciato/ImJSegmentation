@@ -338,3 +338,12 @@ LoGMask = function(_sigma, _size)
     mask[center][center] -= dif; 
     return mask;
 };
+
+function roundRGB(_value){
+	if (_value<0)
+		return 0
+	else if (_value>255)
+		return 255
+	else
+		return Math.round(_value);
+}
