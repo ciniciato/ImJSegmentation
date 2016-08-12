@@ -175,12 +175,13 @@ ul, li{
 
 .dropdown  ul{
 	position: absolute;
-	top: 15px;
-	left: 0;
+	top: 17px;
+	left: 5px;
 	padding: 2px;
 	width: auto;
 	white-space: nowrap;
 	display: none;
+	z-index: 10;
 }
 
 .dropdown:hover ul{
@@ -327,4 +328,30 @@ ul, li{
 
 #hsv_histogram{
 	padding: 5px;
+}
+
+.right {
+	float: right;
+}
+
+.left {
+	float: left;
+}
+
+#toolbar .vertical .button{
+	min-width: 200px;
+}
+#toolbar .vertical .button strong{
+
+}
+#toolbar .vertical .button strong em{
+
+}
+
+.divisor{
+	font-size:10px;
+	font-style: italic;
+}
+.divisor:before{
+	content:'-';
 }
